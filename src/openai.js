@@ -43,6 +43,7 @@ export const handleTTS = async (text) => {
   }
 };
 
+//OLD CODE TO GET OPENAI WORKING BEFORE INTEGRATING FIREBASE
 // export const handleTTS = async (text) => {
 //   if (!text) {
 //     throw new Error("Text input is required for TTS.");
