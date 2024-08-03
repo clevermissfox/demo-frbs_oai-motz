@@ -1,4 +1,5 @@
-import { useState } from 'react'
+import { useState } from 'react';
+import { auth, db, storage } from './firebase';
 
 function App() {
   const [count, setCount] = useState(0)
