@@ -6,6 +6,7 @@
   font-family: Inter, system-ui, Avenir, Helvetica, Arial, sans-serif;
   line-height: 1.5;
   font-weight: 400;
+  font-size: clamp(0.9em, 1rem + 1.2vw, 1.25em);
 
   color-scheme: light dark;
   color: oklch(100% 0 0);
