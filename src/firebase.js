@@ -10,6 +10,7 @@ import { getStorage } from 'firebase/storage';
 const firebaseConfig = {
   apiKey: "AIzaSyC7cuvaKwEvwBA2mi2XeazvXWD8g0tPwxA",
   authDomain: "demoland-d0f7a.firebaseapp.com",
+  databaseURL: "https://demoland-d0f7a-default-rtdb.firebaseio.com",
   projectId: "demoland-d0f7a",
   storageBucket: "demoland-d0f7a.appspot.com",
   messagingSenderId: "219823922050",

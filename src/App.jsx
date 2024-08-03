@@ -2,13 +2,15 @@ import React, { useState } from 'react';
 import { useAuthState } from 'react-firebase-hooks/auth';
 import { auth } from './firebase';
 import { signInWithEmailAndPassword, createUserWithEmailAndPassword, signOut } from 'firebase/auth';
+import { handleTTS } from './openai';
 
 function App() {
   const [user] = useAuthState(auth);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [text, setText] = useState('');
-  const [audioUrl, setAudioUrl] = useState('');
+  const [audioSrc, setAudioSrc] = useState('');
+  const [loading, setLoading] = useState(false);
 
   const handleSignIn = async () => {
     try {
@@ -32,8 +34,30 @@ function App() {
     });
   };
 
-  const handleTTS = async () => {
-    // Your TTS logic here
+  const generateSpeech = async () => {
+    if (!text) return;
+
+    setLoading(true);
+    try {
+      const { audioBlob, downloadURL } = await handleTTS(text);
+
+      // Check if audioBlob is valid before creating URL
+      if (!(audioBlob instanceof Blob)) {
+        throw new Error('Invalid audio data received');
+      }
+
+      // Create a URL for the Blob and set it as the audio source
+      const audioUrl = URL.createObjectURL(audioBlob);
+      setAudioSrc(audioUrl);
+
+      // Log the Firebase Storage URL (optional)
+      console.log('Firebase Storage URL:', downloadURL);
+    } catch (error) {
+      console.error('Error generating speech:', error);
+      alert('Failed to generate speech. Please try again.');
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -46,11 +70,14 @@ function App() {
               value={text}
               onChange={(e) => setText(e.target.value)}
               placeholder="Enter text for TTS"
+              rows={5}
             />
           </div>
           <div className="btn-wrapper">
-            <button onClick={handleTTS}>Generate Speech</button>
-            {audioUrl && <audio src={audioUrl} controls />}
+            <button onClick={generateSpeech} disabled={loading}>
+              {loading ? 'Generating...' : 'Generate Speech'}
+            </button>
+            {audioSrc && <audio src={audioSrc} controls />}
             <button className='link' onClick={handleSignOut}>Sign Out</button>
           </div>
         </>
@@ -74,7 +101,6 @@ function App() {
               <button onClick={handleSignIn}>Sign In</button>
               <button className="link" onClick={handleSignUp}>Sign Up</button>
             </div>
-
           </div>
         </>
       )}

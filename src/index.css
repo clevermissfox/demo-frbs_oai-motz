@@ -62,7 +62,9 @@ h1 {
     inline-size: 100%;
   }
 
-  & textarea {resize: vertical;}
+  & textarea {
+    resize: vertical;
+  }
 }
 
 :is(input, textarea) {
