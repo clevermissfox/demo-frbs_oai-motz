@@ -3,45 +3,88 @@ import { storage } from './firebase';
 import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 
 const openai = new OpenAI({
-  apiKey: import.meta.env.VITE_OPENAI_API_KEY, // Correct way to access in Vite
+  apiKey: import.meta.env.VITE_OPENAI_API_KEY,
   dangerouslyAllowBrowser: true
 });
 
-// Fixed filename for the audio file
-const FIXED_FILENAME = 'latest_tts_audio.mp3';
+// Function to handle speech-to-text
+export const handleSTT = async (audioBlob) => {
+  try {
+    const formData = new FormData();
+    formData.append('file', audioBlob, 'audio.wav');
+    formData.append('model', 'whisper-1');
 
-export const handleTTS = async (text) => {
+    const response = await openai.audio.transcriptions.create({
+      file: formData.get('file'),
+      model: 'whisper-1',
+    });
+
+    return response.text;
+  } catch (error) {
+    console.error('Error in speech-to-text:', error);
+    throw error;
+  }
+};
+
+// Function to handle text-to-speech
+export const handleTTS = async (text, scriptName) => {
   if (!text) {
     throw new Error("Text input is required for TTS.");
   }
 
   try {
-    // Call the OpenAI TTS API
+    // Check if audio file already exists
+    const storageRef = ref(storage, `audio/${scriptName}`);
+    try {
+      const url = await getDownloadURL(storageRef);
+      return { downloadURL: url }; // Return existing URL if found
+    } catch (error) {
+      if (error.code !== 'storage/object-not-found') {
+        throw error; // Handle other errors
+      }
+    }
+
+    // If audio doesn't exist, generate new audio
     const response = await openai.audio.speech.create({
       model: "tts-1",
       input: text,
       voice: "onyx",
     });
 
-    // Convert the response to a Blob
     const audioBlob = new Blob([await response.arrayBuffer()], { type: 'audio/mpeg' });
 
-    // Create a reference to the fixed location in Firebase Storage
-    const storageRef = ref(storage, `audio/${FIXED_FILENAME}`);
-
-    // Upload the Blob to Firebase Storage, overwriting any existing file
+    // Upload the Blob to Firebase Storage with the structured filename
     await uploadBytes(storageRef, audioBlob);
 
     // Get the download URL
     const downloadURL = await getDownloadURL(storageRef);
 
-    // Return both the Blob and the download URL
     return { audioBlob, downloadURL };
   } catch (error) {
     console.error('Error generating speech:', error);
     throw error;
   }
 };
+
+// Function to analyze transcription and generate response
+export const analyzeTranscription = (transcription) => {
+  const keywords = {
+    "Charging station": "Here's information about charging stations...",
+    "Tracking Software": "Let me tell you about tracking software..."
+  };
+
+  for (const [keyword, script] of Object.entries(keywords)) {
+    if (transcription.toLowerCase().includes(keyword.toLowerCase())) {
+      // Create a structured filename based on the keyword
+      const scriptName = `script-${keyword.toLowerCase().replace(/ /g, '-')}.mp3`;
+      return { scriptName, script };
+    }
+  }
+
+  return null;
+};
+
+
 
 //OLD CODE TO GET OPENAI WORKING BEFORE INTEGRATING FIREBASE
 // export const handleTTS = async (text) => {
