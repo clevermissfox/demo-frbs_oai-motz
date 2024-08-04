@@ -88,7 +88,7 @@ function App() {
               {loading ? 'Generating...' : 'Generate Speech'}
             </button>
             {audioSrc && <audio src={audioSrc} controls />}
-            <button className='link' onClick={handleSignOut}>Sign Out</button>
+            <button className='link abs' onClick={handleSignOut}>Sign out</button>
           </div>
         </>
       ) : (

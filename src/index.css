@@ -105,8 +105,8 @@ button:focus-visible {
 .link {
   background-color: transparent;
   border: 1px solid currentColor;
-
 }
+
 
 @media (prefers-color-scheme: light) {
   :root {
